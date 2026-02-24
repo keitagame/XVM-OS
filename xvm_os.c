@@ -30,7 +30,16 @@
 /* =========================================================
  * COMPILER / ARCH DEFINITIONS
  * ========================================================= */
-
+#include <stdint.h>
+struct int_frame {
+    uint32_t gs, fs, es, ds;
+    uint32_t edi, esi, ebp, esp, ebx, edx, ecx, eax;
+    uint32_t int_no, err_code;
+    uint32_t eip, cs, eflags, useresp, ss;
+};
+typedef unsigned int   uint32_t;
+typedef unsigned short uint16_t;
+typedef unsigned char  uint8_t;
 typedef unsigned char      uint8_t;
 typedef unsigned short     uint16_t;
 typedef unsigned int       uint32_t;
@@ -94,7 +103,11 @@ static void phys_mark_free(uint32_t page) {
 static int phys_is_used(uint32_t page) {
     return (phys_bitmap[page/32] >> (page%32)) & 1;
 }
+void kprintf(const char *fmt, ...);
 
+
+uint8_t kernel_stack[4096];
+void *init_kstack_top = &kernel_stack[4096];
 uint32_t phys_alloc_page(void) {
     for (uint32_t i = phys_alloc_next; i < PHYS_PAGES; i++) {
         if (!phys_is_used(i)) {
@@ -491,12 +504,13 @@ static const char *exception_names[] = {
 };
 
 /* Interrupt frame */
-struct int_frame {
+/* int_frame {
     uint32_t ds;
     uint32_t edi,esi,ebp,esp_dummy,ebx,edx,ecx,eax; /* pusha */
-    uint32_t int_no, err_code;
-    uint32_t eip, cs, eflags, esp, ss; /* pushed by CPU */
-};
+//    uint32_t int_no, err_code;
+//    uint32_t eip, cs, eflags, esp, ss; /* pushed by CPU */
+//};
+
 
 /* Forward declarations for ISRs */
 static void isr_handler(struct int_frame *f);
