@@ -84,7 +84,7 @@ typedef int32_t            off_t;
 
 static uint32_t phys_bitmap[PHYS_BITMAP_WORDS];
 static uint32_t phys_alloc_next = 0;
-
+static int strstr_simple(const char*, const char*);
 static void phys_mark_used(uint32_t page) {
     phys_bitmap[page/32] |= (1u << (page%32));
 }
@@ -509,9 +509,19 @@ static void irq_handler(struct int_frame *f);
 #define ISR_ERR(n) \
     static void __attribute__((naked)) isr##n(void) { \
         __asm__ volatile("push $" #n "\njmp isr_common_stub"); }
-#define IRQ(n,irq) \
-    static void __attribute__((naked)) irq##n(void) { \
-        __asm__ volatile("push $0\npush $" #irq "\njmp irq_common_stub"); }
+//#define IRQ(n,irq) \
+//    static void __attribute__((naked)) irq##n(void) { \
+//       __asm__ volatile("push $0\npush $" #irq "\njmp irq_common_stub"); }
+
+#define IRQ(n,vec) \
+static void __attribute__((naked)) irq##vec(void) { \
+    __asm__ volatile ( \
+        "cli\n" \
+        "pushl $0\n" \
+        "pushl $" #vec "\n" \
+        "jmp irq_common_stub\n" \
+    ); \
+}
 
 ISR_NOERR(0)  ISR_NOERR(1)  ISR_NOERR(2)  ISR_NOERR(3)
 ISR_NOERR(4)  ISR_NOERR(5)  ISR_NOERR(6)  ISR_NOERR(7)
@@ -521,10 +531,10 @@ ISR_NOERR(16) ISR_NOERR(17) ISR_NOERR(18) ISR_NOERR(19)
 ISR_NOERR(20) ISR_NOERR(21) ISR_NOERR(22) ISR_NOERR(23)
 ISR_NOERR(24) ISR_NOERR(25) ISR_NOERR(26) ISR_NOERR(27)
 ISR_NOERR(28) ISR_NOERR(29) ISR_NOERR(30) ISR_NOERR(31)
-IRQ(0,32) IRQ(1,33) IRQ(2,34) IRQ(3,35)
-IRQ(4,36) IRQ(5,37) IRQ(6,38) IRQ(7,39)
-IRQ(8,40) IRQ(9,41) IRQ(10,42) IRQ(11,43)
-IRQ(12,44) IRQ(13,45) IRQ(14,46) IRQ(15,47)
+IRQ(0,32); IRQ(1,33); IRQ(2,34); IRQ(3,35);
+IRQ(4,36); IRQ(5,37); IRQ(6,38); IRQ(7,39);
+IRQ(8,40); IRQ(9,41); IRQ(10,42); IRQ(11,43);
+IRQ(12,44); IRQ(13,45); IRQ(14,46); IRQ(15,47);
 
 /* Syscall stub: int 0x80 */
 static void __attribute__((naked)) isr128(void) {
@@ -2299,82 +2309,3 @@ void __attribute__((naked, section(".text.boot"))) _start(void) {
 /* Stack top symbol */
 static uint8_t init_kstack_top_dummy __section(".bss") __used;
 
-/*
-==========================================================
- LINKER SCRIPT (link.ld) - embed as comment for reference:
-
-ENTRY(_start)
-OUTPUT_FORMAT("binary")
-
-SECTIONS {
-    . = 0x00100000;  /* Load at 1MB */
-
-    .multiboot : { *(.multiboot) }
-    .text.boot : { *(.text.boot) }
-    .text      : { *(.text*) }
-    .rodata    : { *(.rodata*) }
-    .data      : { *(.data*) }
-    .bss       : {
-        *(.bss*)
-        *(COMMON)
-    }
-    /DISCARD/ : { *(.comment) *(.eh_frame*) }
-}
-
-==========================================================
- BUILD INSTRUCTIONS:
-
-1. Save linker script as link.ld (see above)
-
-2. Compile:
-   gcc -m32 -ffreestanding -fno-pie -fno-pic -nostdlib -nostdinc \
-       -fno-stack-protector -O2 -std=gnu99 -g \
-       -c -o xvm_os.o xvm_os.c
-
-3. Link:
-   ld -m elf_i386 -T link.ld -o xvm_os.elf xvm_os.o
-   objcopy -O binary xvm_os.elf xvm_os.bin
-
-4. Run with QEMU:
-   qemu-system-i386 -kernel xvm_os.bin -m 64 \
-       -serial stdio -display curses
-
-   OR with VGA:
-   qemu-system-i386 -kernel xvm_os.bin -m 64
-
-5. To run with grub:
-   Create grub.cfg:
-     menuentry "XVM-OS" {
-       multiboot /boot/xvm_os.bin
-       boot
-     }
-
-==========================================================
- FEATURES:
-  - x86 32-bit protected mode
-  - GDT (Global Descriptor Table) with kernel/user segments
-  - IDT (Interrupt Descriptor Table) with all 256 entries
-  - PIC (8259) remapped to avoid conflicts with exceptions
-  - PIT (8253) timer at 100Hz
-  - PS/2 keyboard driver with scancode translation
-  - VGA text mode console (80x25) with cursor
-  - Physical memory manager (bitmap allocator, 64MB)
-  - Virtual memory (x86 paging, 4MB pages for kernel)
-  - Kernel heap (bump allocator)
-  - Process table (32 processes max)
-  - Round-robin scheduler
-  - TTY driver with line buffering, echo, Ctrl+C/D
-  - VFS layer (virtual filesystem)
-  - ramfs (RAM filesystem, full read/write)
-  - /dev/null, /dev/tty, /dev/zero
-  - Standard Unix directory structure
-  - System call interface (int 0x80)
-  - Built-in shell (xsh) with:
-    - Command history
-    - Shell script execution
-    - Common Unix commands:
-      ls, cd, pwd, cat, echo, touch, write, cp, mv, rm,
-      mkdir, head, grep, wc, hexdump, ps, uname, uptime,
-      free, date, sleep, clear, reboot, help
-==========================================================
-*/

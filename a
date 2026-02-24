@@ -1,0 +1,79 @@
+/*
+==========================================================
+ LINKER SCRIPT (link.ld) - embed as comment for reference:
+
+ENTRY(_start)
+OUTPUT_FORMAT("binary")
+
+SECTIONS {
+    . = 0x00100000;  /* Load at 1MB */
+
+    .multiboot : { *(.multiboot) }
+    .text.boot : { *(.text.boot) }
+    .text      : { *(.text*) }
+    .rodata    : { *(.rodata*) }
+    .data      : { *(.data*) }
+    .bss       : {
+        *(.bss*)
+        *(COMMON)
+    }
+    /DISCARD/ : { *(.comment) *(.eh_frame*) }
+}
+
+==========================================================
+ BUILD INSTRUCTIONS:
+
+1. Save linker script as link.ld (see above)
+
+2. Compile:
+   gcc -m32 -ffreestanding -fno-pie -fno-pic -nostdlib -nostdinc \
+       -fno-stack-protector -O2 -std=gnu99 -g \
+       -c -o xvm_os.o xvm_os.c
+
+3. Link:
+   ld -m elf_i386 -T link.ld -o xvm_os.elf xvm_os.o
+   objcopy -O binary xvm_os.elf xvm_os.bin
+
+4. Run with QEMU:
+   qemu-system-i386 -kernel xvm_os.bin -m 64 \
+       -serial stdio -display curses
+
+   OR with VGA:
+   qemu-system-i386 -kernel xvm_os.bin -m 64
+
+5. To run with grub:
+   Create grub.cfg:
+     menuentry "XVM-OS" {
+       multiboot /boot/xvm_os.bin
+       boot
+     }
+
+==========================================================
+ FEATURES:
+  - x86 32-bit protected mode
+  - GDT (Global Descriptor Table) with kernel/user segments
+  - IDT (Interrupt Descriptor Table) with all 256 entries
+  - PIC (8259) remapped to avoid conflicts with exceptions
+  - PIT (8253) timer at 100Hz
+  - PS/2 keyboard driver with scancode translation
+  - VGA text mode console (80x25) with cursor
+  - Physical memory manager (bitmap allocator, 64MB)
+  - Virtual memory (x86 paging, 4MB pages for kernel)
+  - Kernel heap (bump allocator)
+  - Process table (32 processes max)
+  - Round-robin scheduler
+  - TTY driver with line buffering, echo, Ctrl+C/D
+  - VFS layer (virtual filesystem)
+  - ramfs (RAM filesystem, full read/write)
+  - /dev/null, /dev/tty, /dev/zero
+  - Standard Unix directory structure
+  - System call interface (int 0x80)
+  - Built-in shell (xsh) with:
+    - Command history
+    - Shell script execution
+    - Common Unix commands:
+      ls, cd, pwd, cat, echo, touch, write, cp, mv, rm,
+      mkdir, head, grep, wc, hexdump, ps, uname, uptime,
+      free, date, sleep, clear, reboot, help
+==========================================================
+*/
