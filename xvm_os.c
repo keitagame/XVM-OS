@@ -30,7 +30,10 @@
 /* =========================================================
  * COMPILER / ARCH DEFINITIONS
  * ========================================================= */
-#include <stdint.h>
+typedef unsigned int   uint32_t;
+typedef unsigned short uint16_t;
+typedef unsigned char  uint8_t;
+typedef int            int32_t;
 struct int_frame {
     uint32_t gs, fs, es, ds;
     uint32_t edi, esi, ebp, esp, ebx, edx, ecx, eax;
@@ -388,7 +391,7 @@ static void vga_clear(void) {
 }
 
 /* kprintf - kernel printf (minimal) */
-static void kprintf(const char *fmt, ...) {
+void kprintf(const char *fmt, ...) {
     /* Minimal va_args inline */
     uint32_t *args = (uint32_t*)&fmt + 1;
     int ai = 0;
