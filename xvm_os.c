@@ -516,8 +516,8 @@ static const char *exception_names[] = {
 
 
 /* Forward declarations for ISRs */
-static void isr_handler(struct int_frame *f);
-static void irq_handler(struct int_frame *f);
+void isr_handler(struct int_frame *f);
+void irq_handler(struct int_frame *f);
 
 /* ISR stubs - we use a macro trick via inline asm */
 #define ISR_NOERR(n) \
@@ -1213,7 +1213,7 @@ static void schedule(void) {
 /* =========================================================
  * INTERRUPT HANDLERS
  * ========================================================= */
-static void isr_handler(struct int_frame *f) {
+void isr_handler(struct int_frame *f) {
     uint32_t num = f->int_no;
 
     if (num == 128) {
@@ -1232,7 +1232,7 @@ static void isr_handler(struct int_frame *f) {
     }
 }
 
-static void irq_handler(struct int_frame *f) {
+void irq_handler(struct int_frame *f) {
     uint8_t irq = (uint8_t)(f->int_no - 32);
 
     switch (irq) {
