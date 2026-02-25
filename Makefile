@@ -26,7 +26,7 @@ run: $(TARGET).bin
 	$(QEMU) -kernel $(TARGET).bin -m 64 -display sdl
 
 run-text: $(TARGET).bin
-	$(QEMU) -kernel $(TARGET).bin -m 64 -display curses -serial stdio
+	$(QEMU) -kernel $(TARGET).elf -m 64 -display curses -serial stdio
 
 run-vnc: $(TARGET).bin
 	$(QEMU) -kernel $(TARGET).bin -m 64 -vnc :0
