@@ -2115,18 +2115,23 @@ static void setup_rootfs(void) {
         ramfs_create(etc, "motd", 0644);
         f = ramfs_lookup(etc, "motd");
         if (f) {
-            const char *motd =
-                "\n"
-                "  ██╗  ██╗██╗   ██╗███╗   ███╗      ██████╗ ███████╗\n"
-                "  ╚██╗██╔╝██║   ██║████╗ ████║     ██╔═══██╗██╔════╝\n"
-                "   ╚███╔╝ ██║   ██║██╔████╔██║     ██║   ██║███████╗\n"
-                "   ██╔██╗ ╚██╗ ██╔╝██║╚██╔╝██║     ██║   ██║╚════██║\n"
-                "  ██╔╝ ██╗ ╚████╔╝ ██║ ╚═╝ ██║     ╚██████╔╝███████║\n"
-                "  ╚═╝  ╚═╝  ╚═══╝  ╚═╝     ╚═╝      ╚═════╝ ╚══════╝\n"
-                "\n"
-                "  XVM-OS v1.0.0 - A Minimal Unix-like OS\n"
-                "  Type 'help' for available commands\n\n";
-            ramfs_write(f, 0, strlen(motd), motd);
+            ramfs_create(etc, "motd", 0644);
+
+    const char *motd =
+    "\n"
+    "  __  __ __     __   ____   _____   ____   _____ \n"
+    " |  \\/  |\\ \\   / /  / __ \\ / ____| / __ \\ / ____|\n"
+    " | \\  / | \\ \\_/ /  | |  | | (___  | |  | | (___  \n"
+    " | |\\/| |  \\   /   | |  | |\\___ \\ | |  | |\\___ \\ \n"
+    " | |  | |   | |    | |__| |____) || |__| |____) |\n"
+    " |_|  |_|   |_|     \\____/|_____/  \\____/|_____/ \n"
+    "\n"
+    "  XVM-OS v1.0.0 - A Minimal Unix-like OS\n"
+    "  Type 'help' for available commands\n\n";
+
+    ramfs_write(f, 0, strlen(motd), motd);
+
+
         }
     }
 
