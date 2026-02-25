@@ -38,14 +38,15 @@ debug: $(TARGET).bin
 	    -ex "break kmain"
 
 clean:
+    
 	rm -f $(TARGET).o $(TARGET).elf $(TARGET).bin
 
 iso: $(TARGET).bin
 	mkdir -p iso/boot/grub
-	cp $(TARGET).bin iso/boot/
-	echo 'menuentry "XVM-OS" { multiboot /boot/xvm_os.bin; boot }' \
+	cp $(TARGET).elf iso/boot/
+	echo 'menuentry "XVM-OS" { multiboot /boot/xvm_os.elf; boot }' \
 	    > iso/boot/grub/grub.cfg
 	grub-mkrescue -o $(TARGET).iso iso/
-	$(QEMU) -cdrom $(TARGET).iso -m 64
+	$(QEMU) -cdrom $(TARGET).iso -m 64 -nographic
 
 .PHONY: all run run-text run-vnc debug clean iso
